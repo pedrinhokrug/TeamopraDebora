@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Para a Débora</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Nunito:wght@400;600;700&display=swap');
+
+  :root {
+    --rose-deep: #8c2f4a;
+    --rose-mid: #d46a86;
+    --blush: #f7d9de;
+    --cream: #fff6f1;
+    --gold: #c9974c;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: radial-gradient(circle at 30% 20%, var(--cream), var(--blush) 55%, #f2c2cd 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    touch-action: none;
+  }
+
+  /* floating hearts ambience */
+  .ambient-heart {
+    position: absolute;
+    opacity: 0.25;
+    color: var(--rose-mid);
+    animation: float 9s ease-in-out infinite;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-24px) rotate(6deg); }
+  }
+
+  .card {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: clamp(28px, 8vw, 56px) clamp(20px, 6vw, 48px);
+    max-width: 560px;
+    width: 92%;
+  }
+
+  .eyebrow {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(30px, 5vw, 46px);
+    color: var(--rose-deep);
+    margin: 0 0 44px 0;
+    line-height: 1.25;
+  }
+
+  .buttons {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    height: 90px;
+  }
+
+  button {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: clamp(15px, 4vw, 18px);
+    padding: 14px clamp(24px, 7vw, 40px);
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    touch-action: manipulation;
+    white-space: nowrap;
+  }
+
+  #btn-sim {
+    background: var(--rose-deep);
+    color: var(--cream);
+    box-shadow: 0 8px 24px rgba(140, 47, 74, 0.35);
+  }
+
+  #btn-sim:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 10px 28px rgba(140, 47, 74, 0.45);
+  }
+
+  #btn-nao {
+    position: fixed;
+    background: transparent;
+    color: var(--rose-mid);
+    border: 2px solid var(--rose-mid);
+    transition: left 0.22s cubic-bezier(.3,1.4,.4,1), top 0.22s cubic-bezier(.3,1.4,.4,1);
+    z-index: 10;
+    touch-action: none;
+  }
+
+  .result {
+    display: none;
+    margin-top: 36px;
+  }
+
+  .result.show {
+    display: block;
+    animation: pop 0.5s cubic-bezier(.25,1.6,.4,1);
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .result p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(24px, 4vw, 34px);
+    color: var(--rose-deep);
+    margin: 0;
+  }
+
+  .heart-burst {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .heart-piece {
+    position: absolute;
+    font-size: 22px;
+    animation: fall 3.2s ease-in forwards;
+  }
+
+  @keyframes fall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+  }
+
+  .stage2 .card > h1, .stage2 .buttons { display: none; }
+
+  footer-note {
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div class="eyebrow">uma pergunta importante</div>
+  <h1 id="question">Você me ama Débora?</h1>
+
+  <div class="buttons" id="buttons">
+    <button id="btn-sim">sim</button>
+    <button id="btn-nao">não</button>
+  </div>
+
+  <div class="result" id="result">
+    <p>eu também te amo ❤️</p>
+  </div>
+</div>
+
+<div class="heart-burst" id="burst"></div>
+
+<script>
+  // ambient background hearts
+  const body = document.body;
+  const heartSymbols = ['♥', '❤'];
+  for (let i = 0; i < 10; i++) {
+    const h = document.createElement('div');
+    h.className = 'ambient-heart';
+    h.textContent = heartSymbols[i % 2];
+    h.style.fontSize = (16 + Math.random() * 28) + 'px';
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.top = Math.random() * 100 + 'vh';
+    h.style.animationDelay = (Math.random() * 6) + 's';
+    h.style.animationDuration = (7 + Math.random() * 5) + 's';
+    body.appendChild(h);
+  }
+
+  const btnNao = document.getElementById('btn-nao');
+  const btnSim = document.getElementById('btn-sim');
+  const buttonsWrap = document.getElementById('buttons');
+  const card = document.getElementById('card');
+  const result = document.getElementById('result');
+  const burst = document.getElementById('burst');
+
+  const EDGE_PADDING = 20;
+  const TRANSITION_MS = 220;
+
+  let btnW = 0, btnH = 0;
+  let targetCx = 0, targetCy = 0; // centro-alvo atual do botão (não o valor animado)
+  let fleeing = false;
+
+  function safeDistance() {
+    // em telas pequenas, usa uma fração da menor dimensão pra sempre caber
+    const shortSide = Math.min(window.innerWidth, window.innerHeight);
+    return Math.max(90, Math.min(170, shortSide * 0.42));
+  }
+
+  function measureButton() {
+    const rect = btnNao.getBoundingClientRect();
+    btnW = rect.width || 110;
+    btnH = rect.height || 54;
+  }
+
+  function placeAt(x, y) {
+    const maxLeft = window.innerWidth - btnW - EDGE_PADDING;
+    const maxTop = window.innerHeight - btnH - EDGE_PADDING;
+    const clampedLeft = Math.min(Math.max(x - btnW / 2, EDGE_PADDING), Math.max(maxLeft, EDGE_PADDING));
+    const clampedTop = Math.min(Math.max(y - btnH / 2, EDGE_PADDING), Math.max(maxTop, EDGE_PADDING));
+
+    targetCx = clampedLeft + btnW / 2;
+    targetCy = clampedTop + btnH / 2;
+
+    btnNao.style.left = clampedLeft + 'px';
+    btnNao.style.top = clampedTop + 'px';
+  }
+
+  function initialPlacement() {
+    measureButton();
+    const simRect = btnSim.getBoundingClientRect();
+    placeAt(simRect.right + 90, simRect.top + simRect.height / 2);
+  }
+
+  // escolhe um novo ponto garantidamente longe da posição do dedo/mouse
+  function fleeFrom(mouseX, mouseY) {
+    if (fleeing) return;
+    fleeing = true;
+
+    const SAFE_DISTANCE = safeDistance();
+    let best = null;
+    let bestDist = -1;
+
+    for (let i = 0; i < 16; i++) {
+      const x = EDGE_PADDING + Math.random() * (window.innerWidth - EDGE_PADDING * 2);
+      const y = EDGE_PADDING + Math.random() * (window.innerHeight - EDGE_PADDING * 2);
+      const dMouse = Math.hypot(x - mouseX, y - mouseY);
+      const dCurrent = Math.hypot(x - targetCx, y - targetCy);
+      const score = Math.min(dMouse, dCurrent); // longe do dedo/mouse E longe de onde já estava
+
+      if (dMouse >= SAFE_DISTANCE && dCurrent > 100) {
+        best = { x, y };
+        break;
+      }
+      if (score > bestDist) {
+        bestDist = score;
+        best = { x, y };
+      }
+    }
+
+    placeAt(best.x, best.y);
+    setTimeout(() => { fleeing = false; }, TRANSITION_MS + 30);
+  }
+
+  function distanceToButton(mouseX, mouseY) {
+    return Math.hypot(mouseX - targetCx, mouseY - targetCy);
+  }
+
+  window.addEventListener('load', initialPlacement);
+  window.addEventListener('resize', () => {
+    measureButton();
+    placeAt(targetCx, targetCy);
+  });
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => { measureButton(); placeAt(targetCx, targetCy); }, 200);
+  });
+
+  // desktop: mouse se aproximando
+  document.addEventListener('mousemove', (e) => {
+    if (distanceToButton(e.clientX, e.clientY) < safeDistance()) {
+      fleeFrom(e.clientX, e.clientY);
+    }
+  });
+
+  btnNao.addEventListener('mouseenter', (e) => {
+    fleeFrom(e.clientX, e.clientY);
+  });
+
+  // mobile: dedo se aproximando (arrastando) ou tocando diretamente
+  document.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    if (touch && distanceToButton(touch.clientX, touch.clientY) < safeDistance()) {
+      fleeFrom(touch.clientX, touch.clientY);
+    }
+  }, { passive: true });
+
+  // captura no momento mais cedo possível do toque, antes que vire um "tap"
+  btnNao.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const touch = e.touches[0];
+    fleeFrom(touch.clientX, touch.clientY);
+  }, { passive: false });
+
+  // trava extra: mesmo que, por algum motivo, o toque "acerte" o botão,
+  // nenhuma dessas interações produz qualquer efeito na página.
+  ['click', 'touchend', 'pointerup', 'mouseup'].forEach((evt) => {
+    btnNao.addEventListener(evt, function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, { passive: false });
+  });
+
+  // pequeno tremor ocasional pra parecer "vivo" mesmo sem ninguém por perto
+  setInterval(() => {
+    if (Math.random() < 0.12) {
+      fleeFrom(targetCx - 999, targetCy);
+    }
+  }, 1800);
+
+  function launchHearts() {
+    const symbols = ['❤', '💕', '💗', '✨'];
+    for (let i = 0; i < 28; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'heart-piece';
+      piece.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.animationDelay = (Math.random() * 1.2) + 's';
+      piece.style.fontSize = (16 + Math.random() * 22) + 'px';
+      burst.appendChild(piece);
+      setTimeout(() => piece.remove(), 4500);
+    }
+  }
+
+  btnSim.addEventListener('click', () => {
+    document.getElementById('question').style.display = 'none';
+    buttonsWrap.style.display = 'none';
+    result.classList.add('show');
+    launchHearts();
+    setInterval(launchHearts, 2600);
+  });
+</script>
+
+</body>
+</html>
